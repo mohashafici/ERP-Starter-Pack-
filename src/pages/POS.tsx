@@ -48,13 +48,13 @@ export default function POS() {
   );
 
   return (
-    <div className="p-8 h-screen flex flex-col">
-      <div className="mb-6">
-        <h1 className="text-4xl font-bold text-foreground">Point of Sale</h1>
-        <p className="text-muted-foreground mt-1">Quick checkout and product search</p>
+    <div className="p-4 sm:p-6 lg:p-8 h-screen flex flex-col pt-16 lg:pt-8">
+      <div className="mb-4 lg:mb-6">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground">Point of Sale</h1>
+        <p className="text-muted-foreground mt-1 text-sm sm:text-base">Quick checkout and product search</p>
       </div>
 
-      <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6 overflow-hidden">
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6 overflow-hidden">
         <div className="lg:col-span-2 space-y-4 overflow-auto">
           <div className="relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
@@ -66,7 +66,7 @@ export default function POS() {
             />
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
             {filteredProducts.map((product, i) => (
               <motion.div
                 key={product.id}

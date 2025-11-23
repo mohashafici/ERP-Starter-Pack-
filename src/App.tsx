@@ -7,6 +7,10 @@ import { AppLayout } from "./components/layout/AppLayout";
 import Dashboard from "./pages/Dashboard";
 import POS from "./pages/POS";
 import Inventory from "./pages/Inventory";
+import Sales from "./pages/Sales";
+import Employees from "./pages/Employees";
+import Attendance from "./pages/Attendance";
+import Expenses from "./pages/Expenses";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
@@ -23,6 +27,10 @@ const App = () => (
             <Route path="/" element={<Dashboard />} />
             <Route path="/pos" element={<POS />} />
             <Route path="/inventory" element={<Inventory />} />
+            <Route path="/sales" element={<Sales />} />
+            <Route path="/employees" element={<Employees />} />
+            <Route path="/attendance" element={<Attendance />} />
+            <Route path="/expenses" element={<Expenses />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

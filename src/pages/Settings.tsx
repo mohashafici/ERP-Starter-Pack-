@@ -6,13 +6,13 @@ import { motion } from "framer-motion";
 
 export default function Settings() {
   return (
-    <div className="p-8 space-y-8">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-6 lg:space-y-8 pt-16 lg:pt-8">
       <div>
-        <h1 className="text-4xl font-bold text-foreground">Settings</h1>
-        <p className="text-muted-foreground mt-1">Manage your business preferences and configuration</p>
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground">Settings</h1>
+        <p className="text-muted-foreground mt-1 text-sm sm:text-base">Manage your business preferences and configuration</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

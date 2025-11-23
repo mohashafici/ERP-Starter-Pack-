@@ -5,25 +5,25 @@ import { motion } from "framer-motion";
 
 export default function Dashboard() {
   return (
-    <div className="p-8 space-y-8">
-      <div className="flex items-center justify-between">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-6 lg:space-y-8 pt-16 lg:pt-8">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-bold text-foreground">Dashboard</h1>
-          <p className="text-muted-foreground mt-1">Welcome back! Here's your business overview.</p>
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground">Dashboard</h1>
+          <p className="text-muted-foreground mt-1 text-sm sm:text-base">Welcome back! Here's your business overview.</p>
         </div>
-        <div className="flex gap-3">
-          <Button variant="outline" size="lg" className="rounded-xl">
-            <Plus className="h-5 w-5 mr-2" />
-            Add Expense
+        <div className="flex gap-2 sm:gap-3">
+          <Button variant="outline" size="sm" className="rounded-xl flex-1 sm:flex-none">
+            <Plus className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Add Expense</span>
           </Button>
-          <Button size="lg" className="rounded-xl shadow-soft-md">
-            <ShoppingCart className="h-5 w-5 mr-2" />
-            New Sale
+          <Button size="sm" className="rounded-xl shadow-soft-md flex-1 sm:flex-none">
+            <ShoppingCart className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">New Sale</span>
           </Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
         <StatCard
           title="Today's Sales"
           value="$2,847"
@@ -58,7 +58,7 @@ export default function Dashboard() {
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
