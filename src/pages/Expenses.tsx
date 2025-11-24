@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Plus, Edit, Trash2, TrendingDown } from "lucide-react";
+import { Search, Edit, Trash2, TrendingDown } from "lucide-react";
 import { motion } from "framer-motion";
+import { AddExpenseDialog } from "@/components/expenses/AddExpenseDialog";
 
 const expenses = [
   { id: 1, category: "Rent", amount: 2500, date: "2024-01-01", description: "Monthly office rent", type: "Fixed" },
@@ -37,10 +38,7 @@ export default function Expenses() {
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground">Expenses</h1>
           <p className="text-muted-foreground mt-1 text-sm sm:text-base">Track and manage business expenses</p>
         </div>
-        <Button size="sm" className="rounded-xl shadow-soft-md w-full sm:w-auto">
-          <Plus className="h-4 w-4 sm:mr-2" />
-          <span>Add Expense</span>
-        </Button>
+        <AddExpenseDialog />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

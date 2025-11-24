@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Plus, Edit, Trash2, AlertTriangle } from "lucide-react";
+import { Search, Edit, Trash2, AlertTriangle } from "lucide-react";
 import { motion } from "framer-motion";
+import { AddProductDialog } from "@/components/inventory/AddProductDialog";
 
 const inventory = [
   { id: 1, name: "Wireless Mouse", stock: 5, buyPrice: 15, sellPrice: 29.99, category: "Electronics" },
@@ -27,10 +28,7 @@ export default function Inventory() {
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground">Inventory</h1>
           <p className="text-muted-foreground mt-1 text-sm sm:text-base">Manage your products and stock levels</p>
         </div>
-        <Button size="sm" className="rounded-xl shadow-soft-md w-full sm:w-auto">
-          <Plus className="h-4 w-4 sm:mr-2" />
-          <span>Add Product</span>
-        </Button>
+        <AddProductDialog />
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
