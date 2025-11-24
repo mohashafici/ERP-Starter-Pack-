@@ -35,7 +35,7 @@ export function Sidebar() {
       <Button
         variant="outline"
         size="icon"
-        className="fixed top-4 left-4 z-50 lg:hidden rounded-xl shadow-soft-md"
+        className="fixed top-4 left-4 z-50 lg:hidden rounded-xl shadow-soft-md bg-card"
         onClick={() => setIsOpen(!isOpen)}
       >
         {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -52,7 +52,7 @@ export function Sidebar() {
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed lg:static inset-y-0 left-0 z-40 w-64 border-r border-border bg-card flex flex-col transition-transform duration-300",
+          "fixed lg:static inset-y-0 left-0 z-40 w-64 border-r border-border bg-card flex flex-col transition-smooth",
           isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
       >
