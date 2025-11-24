@@ -1,8 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Plus, Mail, Phone, Edit, Trash2 } from "lucide-react";
+import { Search, Mail, Phone, Edit, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState } from "react";
+import { AddEmployeeDialog } from "@/components/employees/AddEmployeeDialog";
 
 const employees = [
   { id: 1, name: "John Doe", role: "Manager", email: "john@business.com", phone: "+1 234 567 8900", status: "Active" },
@@ -27,10 +28,7 @@ export default function Employees() {
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground">Employees</h1>
           <p className="text-muted-foreground mt-1 text-sm sm:text-base">Manage your team members</p>
         </div>
-        <Button size="sm" className="rounded-xl shadow-soft-md w-full sm:w-auto">
-          <Plus className="h-4 w-4 sm:mr-2" />
-          <span>Add Employee</span>
-        </Button>
+        <AddEmployeeDialog />
       </div>
 
       <div className="relative">
