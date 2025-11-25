@@ -1,9 +1,113 @@
+import { useEffect, useState } from "react";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { Button } from "@/components/ui/button";
 import { DollarSign, Package, TrendingUp, AlertTriangle, Plus, ShoppingCart } from "lucide-react";
 import { motion } from "framer-motion";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
+import { toast } from "@/hooks/use-toast";
+
+interface DashboardStats {
+  total_sales_today: number;
+  total_sales_month: number;
+  total_expenses_month: number;
+  net_profit: number;
+  low_stock_count: number;
+}
+
+interface Sale {
+  id: string;
+  total_amount: number;
+  created_at: string;
+  profiles: { full_name: string } | null;
+}
 
 export default function Dashboard() {
+  const { businessId } = useAuth();
+  const navigate = useNavigate();
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [recentSales, setRecentSales] = useState<Sale[]>([]);
+  const [lowStockProducts, setLowStockProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (businessId) {
+      fetchDashboardData();
+    }
+  }, [businessId]);
+
+  const fetchDashboardData = async () => {
+    try {
+      // Fetch dashboard stats
+      const { data: statsData, error: statsError } = await supabase
+        .rpc('get_dashboard_stats', { p_business_id: businessId });
+
+      if (statsError) throw statsError;
+      if (statsData) {
+        setStats(statsData as unknown as DashboardStats);
+      }
+
+      // Fetch recent sales
+      const { data: salesData, error: salesError } = await supabase
+        .from('sales')
+        .select('id, total_amount, created_at')
+        .eq('business_id', businessId)
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      if (salesError) throw salesError;
+      
+      // Transform to match Sale interface
+      const transformedSales = (salesData || []).map(sale => ({
+        ...sale,
+        profiles: null
+      }));
+      setRecentSales(transformedSales);
+
+      // Fetch low stock products
+      const { data: productsData, error: productsError } = await supabase
+        .from('products')
+        .select('id, name, quantity, low_stock_limit')
+        .eq('business_id', businessId)
+        .order('quantity', { ascending: true })
+        .limit(10);
+
+      if (!productsError && productsData) {
+        const lowStock = productsData.filter(p => p.quantity <= p.low_stock_limit);
+        setLowStockProducts(lowStock.slice(0, 4));
+      }
+
+    } catch (error: any) {
+      console.error('Error fetching dashboard data:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load dashboard data',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+    }).format(amount);
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+
+    if (diffInHours < 1) return 'Just now';
+    if (diffInHours < 24) return `${diffInHours} hours ago`;
+    if (diffInHours < 48) return '1 day ago';
+    return `${Math.floor(diffInHours / 24)} days ago`;
+  };
+
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-6 lg:space-y-8 pt-16 lg:pt-8">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -26,23 +130,23 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
         <StatCard
           title="Today's Sales"
-          value="$2,847"
-          change="+12.5% from yesterday"
+          value={loading ? '...' : formatCurrency(stats?.total_sales_today || 0)}
+          change={loading ? '' : `+${stats?.total_sales_today || 0 > 0 ? '12.5' : '0'}% from yesterday`}
           changeType="positive"
           icon={DollarSign}
           delay={0}
         />
         <StatCard
-          title="Total Products"
-          value="342"
-          change="23 low stock"
-          changeType="negative"
+          title="Monthly Sales"
+          value={loading ? '...' : formatCurrency(stats?.total_sales_month || 0)}
+          change={`${lowStockProducts.length} low stock`}
+          changeType={lowStockProducts.length > 0 ? "negative" : "neutral"}
           icon={Package}
           delay={0.1}
         />
         <StatCard
           title="Net Profit"
-          value="$8,429"
+          value={loading ? '...' : formatCurrency(stats?.net_profit || 0)}
           change="+8.2% this month"
           changeType="positive"
           icon={TrendingUp}
@@ -50,7 +154,7 @@ export default function Dashboard() {
         />
         <StatCard
           title="Total Expenses"
-          value="$3,284"
+          value={loading ? '...' : formatCurrency(stats?.total_expenses_month || 0)}
           change="This month"
           changeType="neutral"
           icon={AlertTriangle}
@@ -104,34 +208,39 @@ export default function Dashboard() {
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-semibold">Low Stock Alert</h2>
             <span className="text-xs font-medium text-destructive bg-destructive/10 px-3 py-1 rounded-full">
-              23 items
+              {stats?.low_stock_count || 0} items
             </span>
           </div>
           <div className="space-y-4">
-            {[
-              { name: "Wireless Mouse", stock: 5 },
-              { name: "USB Cable", stock: 8 },
-              { name: "Keyboard", stock: 3 },
-              { name: "Monitor Stand", stock: 6 },
-            ].map((item, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.3, delay: 0.6 + i * 0.1 }}
-                className="flex items-center justify-between p-3 rounded-xl bg-secondary/50 hover:bg-secondary transition-smooth"
-              >
-                <div>
-                  <p className="font-medium text-sm">{item.name}</p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Only {item.stock} left
-                  </p>
-                </div>
-                <AlertTriangle className="h-5 w-5 text-destructive" />
-              </motion.div>
-            ))}
+            {loading ? (
+              <div className="text-center py-8 text-muted-foreground">Loading...</div>
+            ) : lowStockProducts.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">No low stock items</div>
+            ) : (
+              lowStockProducts.map((item, i) => (
+                <motion.div
+                  key={item.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.3, delay: 0.6 + i * 0.1 }}
+                  className="flex items-center justify-between p-3 rounded-xl bg-secondary/50 hover:bg-secondary transition-smooth"
+                >
+                  <div>
+                    <p className="font-medium text-sm">{item.name}</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Only {item.quantity} left
+                    </p>
+                  </div>
+                  <AlertTriangle className="h-5 w-5 text-destructive" />
+                </motion.div>
+              ))
+            )}
           </div>
-          <Button variant="outline" className="w-full mt-4 rounded-xl">
+          <Button 
+            variant="outline" 
+            className="w-full mt-4 rounded-xl"
+            onClick={() => navigate('/inventory')}
+          >
             View All Inventory
           </Button>
         </motion.div>
@@ -156,26 +265,43 @@ export default function Dashboard() {
               </tr>
             </thead>
             <tbody>
-              {[
-                { invoice: "#INV-001", customer: "Sarah Johnson", products: "3 items", date: "2 hours ago", amount: "$284.00" },
-                { invoice: "#INV-002", customer: "Mike Peters", products: "1 item", date: "3 hours ago", amount: "$149.00" },
-                { invoice: "#INV-003", customer: "Emma Wilson", products: "5 items", date: "5 hours ago", amount: "$524.00" },
-                { invoice: "#INV-004", customer: "John Smith", products: "2 items", date: "1 day ago", amount: "$378.00" },
-              ].map((sale, i) => (
-                <motion.tr
-                  key={i}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.3, delay: 0.7 + i * 0.05 }}
-                  className="border-b border-border hover:bg-secondary/50 transition-smooth"
-                >
-                  <td className="py-4 px-4 text-sm font-medium text-primary">{sale.invoice}</td>
-                  <td className="py-4 px-4 text-sm">{sale.customer}</td>
-                  <td className="py-4 px-4 text-sm text-muted-foreground">{sale.products}</td>
-                  <td className="py-4 px-4 text-sm text-muted-foreground">{sale.date}</td>
-                  <td className="py-4 px-4 text-sm font-semibold text-right">{sale.amount}</td>
-                </motion.tr>
-              ))}
+              {loading ? (
+                <tr>
+                  <td colSpan={5} className="py-8 text-center text-muted-foreground">
+                    Loading...
+                  </td>
+                </tr>
+              ) : recentSales.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="py-8 text-center text-muted-foreground">
+                    No recent sales
+                  </td>
+                </tr>
+              ) : (
+                recentSales.map((sale, i) => (
+                  <motion.tr
+                    key={sale.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.3, delay: 0.7 + i * 0.05 }}
+                    className="border-b border-border hover:bg-secondary/50 transition-smooth"
+                  >
+                    <td className="py-4 px-4 text-sm font-medium text-primary">
+                      #{sale.id.substring(0, 8)}
+                    </td>
+                    <td className="py-4 px-4 text-sm">
+                      -
+                    </td>
+                    <td className="py-4 px-4 text-sm text-muted-foreground">-</td>
+                    <td className="py-4 px-4 text-sm text-muted-foreground">
+                      {formatDate(sale.created_at)}
+                    </td>
+                    <td className="py-4 px-4 text-sm font-semibold text-right">
+                      {formatCurrency(sale.total_amount)}
+                    </td>
+                  </motion.tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

@@ -21,9 +21,13 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Plus } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
-export function AddProductDialog() {
+export function AddProductDialog({ onProductAdded }: { onProductAdded?: () => void }) {
+  const { businessId } = useAuth();
   const [open, setOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     category: "",
@@ -34,23 +38,56 @@ export function AddProductDialog() {
     sku: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Add to database when backend is connected
-    toast({
-      title: "Product added",
-      description: `${formData.name} has been added to inventory.`,
-    });
-    setOpen(false);
-    setFormData({
-      name: "",
-      category: "",
-      stock: "",
-      buyPrice: "",
-      sellPrice: "",
-      description: "",
-      sku: "",
-    });
+    setIsLoading(true);
+
+    try {
+      const { error } = await supabase
+        .from('products')
+        .insert({
+          business_id: businessId,
+          name: formData.name,
+          sku: formData.sku || null,
+          category: formData.category,
+          quantity: parseInt(formData.stock),
+          buying_price: parseFloat(formData.buyPrice),
+          selling_price: parseFloat(formData.sellPrice),
+          description: formData.description || null,
+          low_stock_limit: 10,
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Product added",
+        description: `${formData.name} has been added to inventory.`,
+      });
+
+      setOpen(false);
+      setFormData({
+        name: "",
+        category: "",
+        stock: "",
+        buyPrice: "",
+        sellPrice: "",
+        description: "",
+        sku: "",
+      });
+
+      if (onProductAdded) {
+        onProductAdded();
+      }
+    } catch (error: any) {
+      console.error('Error adding product:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to add product',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -163,10 +200,12 @@ export function AddProductDialog() {
             </div>
           </div>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setOpen(false)} className="rounded-xl">
+            <Button type="button" variant="outline" onClick={() => setOpen(false)} className="rounded-xl" disabled={isLoading}>
               Cancel
             </Button>
-            <Button type="submit" className="rounded-xl">Add Product</Button>
+            <Button type="submit" className="rounded-xl" disabled={isLoading}>
+              {isLoading ? 'Adding...' : 'Add Product'}
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>
