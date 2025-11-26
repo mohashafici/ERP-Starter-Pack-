@@ -214,23 +214,6 @@ src/
 └── index.css          # Design system and global styles
 ```
 
-## 🌐 Deployment
-
-### Quick Deploy with Lovable
-
-1. Click **Publish** button (top right on desktop, bottom-right on mobile)
-2. Your app deploys to a Lovable subdomain
-3. Click **Update** to publish frontend changes
-4. Backend changes deploy automatically
-
-### Custom Domain
-Connect your own domain in Project > Settings > Domains (requires paid plan)
-
-## 📖 Documentation
-
-- **Lovable Docs**: [https://docs.lovable.dev/](https://docs.lovable.dev/)
-- **Project URL**: [https://lovable.dev/projects/9005be0a-42ff-411f-9829-a99225f0df7c](https://lovable.dev/projects/9005be0a-42ff-411f-9829-a99225f0df7c)
-
 ## 🎨 Design Credits
 
 This UI follows design principles from:
