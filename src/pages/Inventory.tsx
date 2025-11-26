@@ -1,67 +1,25 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, Edit, Trash2, AlertTriangle } from "lucide-react";
 import { motion } from "framer-motion";
 import { AddProductDialog } from "@/components/inventory/AddProductDialog";
-import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/hooks/use-toast";
 
-interface Product {
-  id: string;
-  name: string;
-  category: string;
-  quantity: number;
-  buying_price: number;
-  selling_price: number;
-  low_stock_limit: number;
-}
+const inventory = [
+  { id: 1, name: "Wireless Mouse", stock: 5, buyPrice: 15, sellPrice: 29.99, category: "Electronics" },
+  { id: 2, name: "USB Cable", stock: 8, buyPrice: 3, sellPrice: 9.99, category: "Electronics" },
+  { id: 3, name: "Keyboard", stock: 3, buyPrice: 30, sellPrice: 59.99, category: "Electronics" },
+  { id: 4, name: "Monitor Stand", stock: 6, buyPrice: 20, sellPrice: 39.99, category: "Accessories" },
+  { id: 5, name: "Desk Lamp", stock: 15, buyPrice: 18, sellPrice: 34.99, category: "Accessories" },
+  { id: 6, name: "Notebook", stock: 42, buyPrice: 2, sellPrice: 4.99, category: "Stationery" },
+];
 
 export default function Inventory() {
-  const { businessId } = useAuth();
   const [search, setSearch] = useState("");
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (businessId) {
-      fetchProducts();
-    }
-  }, [businessId]);
-
-  const fetchProducts = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .eq('business_id', businessId)
-        .order('name');
-
-      if (error) throw error;
-      setProducts(data || []);
-    } catch (error: any) {
-      console.error('Error fetching products:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load products',
-        variant: 'destructive',
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const filteredInventory = products.filter((item) =>
+  const filteredInventory = inventory.filter((item) =>
     item.name.toLowerCase().includes(search.toLowerCase())
   );
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(amount);
-  };
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-4 lg:space-y-6 pt-16 lg:pt-8">
@@ -70,7 +28,7 @@ export default function Inventory() {
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground">Inventory</h1>
           <p className="text-muted-foreground mt-1 text-sm sm:text-base">Manage your products and stock levels</p>
         </div>
-        <AddProductDialog onProductAdded={fetchProducts} />
+        <AddProductDialog />
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
@@ -102,61 +60,47 @@ export default function Inventory() {
               </tr>
             </thead>
             <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan={6} className="py-8 text-center text-muted-foreground">
-                    Loading...
-                  </td>
-                </tr>
-              ) : filteredInventory.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="py-8 text-center text-muted-foreground">
-                    {search ? 'No products found' : 'No products yet. Add your first product!'}
-                  </td>
-                </tr>
-              ) : (
-                filteredInventory.map((item, i) => (
-                  <motion.tr
-                    key={item.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.2, delay: i * 0.05 }}
-                    className="border-b border-border hover:bg-secondary/30 transition-smooth"
-                  >
-                    <td className="py-4 px-6">
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-lg bg-secondary flex items-center justify-center">
-                          <span>📦</span>
-                        </div>
-                        <span className="font-medium">{item.name}</span>
+              {filteredInventory.map((item, i) => (
+                <motion.tr
+                  key={item.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.2, delay: i * 0.05 }}
+                  className="border-b border-border hover:bg-secondary/30 transition-smooth"
+                >
+                  <td className="py-4 px-6">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-lg bg-secondary flex items-center justify-center">
+                        <span>📦</span>
                       </div>
-                    </td>
-                    <td className="py-4 px-6 text-muted-foreground">{item.category}</td>
-                    <td className="py-4 px-6 text-center">
-                      <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium ${
-                        item.quantity <= item.low_stock_limit 
-                          ? "bg-destructive/10 text-destructive" 
-                          : "bg-primary/10 text-primary"
-                      }`}>
-                        {item.quantity <= item.low_stock_limit && <AlertTriangle className="h-3 w-3" />}
-                        {item.quantity} units
-                      </span>
-                    </td>
-                    <td className="py-4 px-6 text-right text-muted-foreground">{formatCurrency(item.buying_price)}</td>
-                    <td className="py-4 px-6 text-right font-semibold">{formatCurrency(item.selling_price)}</td>
-                    <td className="py-4 px-6">
-                      <div className="flex items-center justify-end gap-2">
-                        <Button size="icon" variant="outline" className="h-9 w-9 rounded-lg">
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button size="icon" variant="outline" className="h-9 w-9 rounded-lg text-destructive hover:text-destructive">
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </td>
-                  </motion.tr>
-                ))
-              )}
+                      <span className="font-medium">{item.name}</span>
+                    </div>
+                  </td>
+                  <td className="py-4 px-6 text-muted-foreground">{item.category}</td>
+                  <td className="py-4 px-6 text-center">
+                    <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium ${
+                      item.stock <= 5 
+                        ? "bg-destructive/10 text-destructive" 
+                        : "bg-primary/10 text-primary"
+                    }`}>
+                      {item.stock <= 5 && <AlertTriangle className="h-3 w-3" />}
+                      {item.stock} units
+                    </span>
+                  </td>
+                  <td className="py-4 px-6 text-right text-muted-foreground">${item.buyPrice.toFixed(2)}</td>
+                  <td className="py-4 px-6 text-right font-semibold">${item.sellPrice.toFixed(2)}</td>
+                  <td className="py-4 px-6">
+                    <div className="flex items-center justify-end gap-2">
+                      <Button size="icon" variant="outline" className="h-9 w-9 rounded-lg">
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button size="icon" variant="outline" className="h-9 w-9 rounded-lg text-destructive hover:text-destructive">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </td>
+                </motion.tr>
+              ))}
             </tbody>
           </table>
         </div>
